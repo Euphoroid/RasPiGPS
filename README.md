@@ -1,6 +1,6 @@
 # RasPiGPS (pi-gen custom stage)
 
-Raspberry Pi Zero W 向け GPS ロガーを構築するための `pi-gen` カスタムステージです。ビルドしたイメージをRPiに書き込むと、GPSの記録を自動的に開始します。同時にWiFiアクセスポイントが立ち上がり、WebUIから情報の確認やGPXの取得が可能です。
+Raspberry Pi Zero W 向け GPS ロガーを構築するための `pi-gen` カスタムステージです。ビルドしたイメージをSDに書き込み起動すると、RPiに接続したGPSの記録を自動的に開始します。同時にWiFiアクセスポイントが立ち上がり、WebUIから情報の確認やGPXの取得が可能です。
 
 ## 機能
 
