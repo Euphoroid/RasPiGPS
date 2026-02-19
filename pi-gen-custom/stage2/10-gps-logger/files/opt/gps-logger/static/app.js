@@ -21,6 +21,13 @@ function bytesToMiB(bytes) {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
+function formatIsoToLocal(iso) {
+  if (!iso) return "-";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString();
+}
+
 function setMessage(id, text, isError = false) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -43,8 +50,10 @@ async function loadStatus() {
     setText("st-disk", bytesToMiB(st.disk_free_bytes));
     const src = st.timestamp_source === "gps" ? "GPS" : "System";
     setText("st-updated", `GPS時刻: ${st.timestamp_utc || "-"} (${src})`);
+    setText("st-system-time", `システム時刻: ${st.system_timestamp_utc || "-"} / Local: ${formatIsoToLocal(st.system_timestamp_utc)}`);
   } catch (_e) {
     setText("st-updated", "GPS時刻: 取得失敗");
+    setText("st-system-time", "システム時刻: 取得失敗");
   }
 }
 
@@ -55,6 +64,7 @@ async function loadSettings() {
     const s = await r.json();
     document.getElementById("set-interval").value = s.log_interval_sec;
     document.getElementById("set-min-speed").value = s.min_speed_write_mps;
+    document.getElementById("set-max-hdop").value = s.max_hdop_for_log;
     document.getElementById("set-disk-th").value = s.disk_free_threshold_mb;
     document.getElementById("set-disk-target").value = s.disk_free_target_mb;
   } catch (_e) {
@@ -69,6 +79,7 @@ async function saveSettings(ev) {
   const payload = {
     log_interval_sec: Number(document.getElementById("set-interval").value),
     min_speed_write_mps: Number(document.getElementById("set-min-speed").value),
+    max_hdop_for_log: Number(document.getElementById("set-max-hdop").value),
     disk_free_threshold_mb: Number(document.getElementById("set-disk-th").value),
     disk_free_target_mb: Number(document.getElementById("set-disk-target").value),
   };
@@ -115,6 +126,28 @@ function submitGpx(ev) {
   const url = `/api/export.gpx?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
   setMessage("gpx-msg", "ダウンロードを開始します");
   window.location.href = url;
+}
+
+async function updateGpxCount() {
+  const startLocal = document.getElementById("gpx-start")?.value;
+  const endLocal = document.getElementById("gpx-end")?.value;
+  const start = localToIso(startLocal || "");
+  const end = localToIso(endLocal || "");
+  if (!start || !end || new Date(start) >= new Date(end)) {
+    setText("gpx-count", "取得点数: -");
+    return;
+  }
+  try {
+    const r = await fetch(`/api/export_count?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`, { cache: "no-store" });
+    const body = await r.json();
+    if (!r.ok) {
+      setText("gpx-count", "取得点数: -");
+      return;
+    }
+    setText("gpx-count", `取得点数: ${body.count} 点`);
+  } catch (_e) {
+    setText("gpx-count", "取得点数: -");
+  }
 }
 
 function initDefaultRange() {
@@ -216,11 +249,13 @@ window.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("refresh-status").addEventListener("click", loadStatus);
   document.getElementById("settings-form").addEventListener("submit", saveSettings);
   document.getElementById("gpx-form").addEventListener("submit", submitGpx);
+  document.getElementById("gpx-start").addEventListener("change", updateGpxCount);
+  document.getElementById("gpx-end").addEventListener("change", updateGpxCount);
   document.getElementById("scan-gps-device").addEventListener("click", loadGpsDevices);
   document.getElementById("gps-device-form").addEventListener("submit", saveGpsDevice);
   document.getElementById("refresh-errors").addEventListener("click", loadErrorLogs);
 
   initDefaultRange();
-  await Promise.all([loadStatus(), loadSettings(), loadGpsDevices(), loadErrorLogs()]);
+  await Promise.all([loadStatus(), loadSettings(), loadGpsDevices(), loadErrorLogs(), updateGpxCount()]);
   setInterval(loadStatus, 10000);
 });

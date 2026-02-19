@@ -1,6 +1,7 @@
 {
   "log_interval_sec": 1.0,
   "min_speed_write_mps": 0.8,
+  "max_hdop_for_log": 3.0,
   "disk_free_threshold_mb": 200,
   "disk_free_target_mb": 300,
   "gps_device": "/dev/ttyUSB0",

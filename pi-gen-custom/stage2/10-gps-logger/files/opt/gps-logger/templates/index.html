@@ -31,6 +31,7 @@
         <article class="cell full"><span>空き容量</span><strong id="st-disk">-</strong></article>
       </div>
       <p class="meta" id="st-updated">GPS時刻: -</p>
+      <p class="meta" id="st-system-time">システム時刻: -</p>
     </section>
 
     <section class="panel" aria-labelledby="settings-title">
@@ -43,6 +44,10 @@
         <label>
           停止判定速度 (m/s)
           <input id="set-min-speed" type="number" step="0.1" min="0" required>
+        </label>
+        <label>
+          記録HDOP上限
+          <input id="set-max-hdop" type="number" step="0.1" min="0.5" required>
         </label>
         <label>
           削除開始 空き容量 (MB)
@@ -70,6 +75,7 @@
         </label>
         <button class="btn" type="submit">GPX を取得</button>
       </form>
+      <p class="meta" id="gpx-count">取得点数: -</p>
       <p class="meta" id="gpx-msg"></p>
     </section>
 

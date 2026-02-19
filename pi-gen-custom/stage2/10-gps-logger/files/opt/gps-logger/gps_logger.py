@@ -36,11 +36,13 @@ def ensure_runtime_dirs():
 
 
 def write_status(state: GPSState, free_bytes: int):
+    system_time = datetime.now(timezone.utc).isoformat()
     status_time = state.gps_time_utc or datetime.now(timezone.utc).isoformat()
     time_source = "gps" if state.gps_time_utc else "system"
     payload = {
         "timestamp_utc": status_time,
         "timestamp_source": time_source,
+        "system_timestamp_utc": system_time,
         "fix_mode": state.fix_mode,
         "satellites": state.satellites,
         "hdop": state.hdop,
@@ -96,10 +98,14 @@ def parse_reports(sock: socket.socket, state: GPSState, buffer: bytes) -> bytes:
     return data
 
 
-def should_write(state: GPSState, min_speed: float) -> bool:
+def should_write(state: GPSState, min_speed: float, max_hdop: float) -> bool:
     if state.fix_mode < 2:
         return False
     if state.lat is None or state.lon is None:
+        return False
+    if state.hdop is None:
+        return False
+    if float(state.hdop) > max_hdop:
         return False
     return state.speed >= min_speed
 
@@ -134,6 +140,7 @@ def main():
     init_db(
         default_interval_sec=float(cfg.get("log_interval_sec", 1.0)),
         default_min_speed=float(cfg.get("min_speed_write_mps", 0.8)),
+        default_max_hdop=float(cfg.get("max_hdop_for_log", 3.0)),
     )
 
     state = GPSState()
@@ -167,7 +174,8 @@ def main():
         if now >= next_write:
             interval = max(fetch_setting("log_interval_sec", 1.0), 0.5)
             min_speed = max(fetch_setting("min_speed_write_mps", 0.8), 0.0)
-            if should_write(state, min_speed):
+            max_hdop = max(fetch_setting("max_hdop_for_log", float(cfg.get("max_hdop_for_log", 3.0))), 0.5)
+            if should_write(state, min_speed, max_hdop):
                 insert_log(state)
             st = os.statvfs("/var/lib/gps-logger")
             free_bytes = st.f_bavail * st.f_frsize

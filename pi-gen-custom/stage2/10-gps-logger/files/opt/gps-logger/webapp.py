@@ -120,6 +120,7 @@ def api_settings():
         return jsonify({
             "log_interval_sec": fetch_setting("log_interval_sec", float(cfg.get("log_interval_sec", 1.0))),
             "min_speed_write_mps": fetch_setting("min_speed_write_mps", float(cfg.get("min_speed_write_mps", 0.8))),
+            "max_hdop_for_log": fetch_setting("max_hdop_for_log", float(cfg.get("max_hdop_for_log", 3.0))),
             "disk_free_threshold_mb": float(cfg.get("disk_free_threshold_mb", 200)),
             "disk_free_target_mb": float(cfg.get("disk_free_target_mb", 300)),
         })
@@ -128,6 +129,7 @@ def api_settings():
     try:
         log_interval = float(body.get("log_interval_sec", fetch_setting("log_interval_sec", 1.0)))
         min_speed = float(body.get("min_speed_write_mps", fetch_setting("min_speed_write_mps", 0.8)))
+        max_hdop = float(body.get("max_hdop_for_log", fetch_setting("max_hdop_for_log", float(cfg.get("max_hdop_for_log", 3.0)))))
         disk_threshold = float(body.get("disk_free_threshold_mb", cfg.get("disk_free_threshold_mb", 200)))
         disk_target = float(body.get("disk_free_target_mb", cfg.get("disk_free_target_mb", 300)))
     except (TypeError, ValueError):
@@ -137,12 +139,15 @@ def api_settings():
         return jsonify({"error": "log_interval_sec must be >= 0.5"}), 400
     if min_speed < 0:
         return jsonify({"error": "min_speed_write_mps must be >= 0"}), 400
+    if max_hdop <= 0:
+        return jsonify({"error": "max_hdop_for_log must be > 0"}), 400
     if disk_target <= disk_threshold:
         return jsonify({"error": "disk_free_target_mb must be > disk_free_threshold_mb"}), 400
 
     with get_conn() as conn:
         set_setting(conn, "log_interval_sec", str(log_interval))
         set_setting(conn, "min_speed_write_mps", str(min_speed))
+        set_setting(conn, "max_hdop_for_log", str(max_hdop))
 
     cfg["disk_free_threshold_mb"] = disk_threshold
     cfg["disk_free_target_mb"] = disk_target
@@ -201,6 +206,33 @@ def api_export_gpx():
         mimetype="application/gpx+xml",
         headers={"Content-Disposition": "attachment; filename=gps-log.gpx"},
     )
+
+
+@app.route("/api/export_count")
+def api_export_count():
+    start = request.args.get("start")
+    end = request.args.get("end")
+    if not start or not end:
+        return jsonify({"error": "start and end are required"}), 400
+
+    try:
+        start_iso = to_iso8601(start)
+        end_iso = to_iso8601(end)
+    except ValueError:
+        return jsonify({"error": "datetime must be ISO8601"}), 400
+
+    with get_conn() as conn:
+        row = conn.execute(
+            """
+            SELECT COUNT(*) AS cnt
+            FROM gps_log
+            WHERE timestamp_utc >= ? AND timestamp_utc <= ?
+              AND lat IS NOT NULL AND lon IS NOT NULL
+            """,
+            (start_iso, end_iso),
+        ).fetchone()
+
+    return jsonify({"count": int(row["cnt"] if row else 0)})
 
 
 @app.route("/api/gps/devices", methods=["GET", "POST"])
@@ -271,6 +303,7 @@ def main():
     init_db(
         default_interval_sec=float(cfg.get("log_interval_sec", 1.0)),
         default_min_speed=float(cfg.get("min_speed_write_mps", 0.8)),
+        default_max_hdop=float(cfg.get("max_hdop_for_log", 3.0)),
     )
     app.run(host="0.0.0.0", port=8080)
 

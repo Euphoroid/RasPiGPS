@@ -25,7 +25,7 @@ def get_conn():
         conn.close()
 
 
-def init_db(default_interval_sec: float, default_min_speed: float) -> None:
+def init_db(default_interval_sec: float, default_min_speed: float, default_max_hdop: float) -> None:
     with get_conn() as conn:
         conn.execute(
             """
@@ -61,6 +61,7 @@ def init_db(default_interval_sec: float, default_min_speed: float) -> None:
         )
         set_setting(conn, "log_interval_sec", str(default_interval_sec))
         set_setting(conn, "min_speed_write_mps", str(default_min_speed))
+        set_setting(conn, "max_hdop_for_log", str(default_max_hdop))
 
 
 def set_setting(conn, key: str, value: str) -> None:
