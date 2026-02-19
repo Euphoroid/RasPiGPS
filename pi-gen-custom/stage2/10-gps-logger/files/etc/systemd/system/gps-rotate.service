@@ -1,0 +1,9 @@
+[Unit]
+Description=Rotate GPS logs when free storage is low
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/gps-logger/rotate_logs.py
+User=root
+Group=root

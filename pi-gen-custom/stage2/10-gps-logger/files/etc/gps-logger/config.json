@@ -1,0 +1,10 @@
+{
+  "log_interval_sec": 1.0,
+  "min_speed_write_mps": 0.8,
+  "disk_free_threshold_mb": 200,
+  "disk_free_target_mb": 300,
+  "gps_device": "/dev/ttyUSB0",
+  "ap_ssid": "GPS-LOGGER-0001",
+  "ap_passphrase": "GpsLoggerAP-2026",
+  "ap_ip": "192.168.4.1"
+}

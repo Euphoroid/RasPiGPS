@@ -1,0 +1,15 @@
+[Unit]
+Description=GPS Logger Service
+After=gpsd.service
+Wants=gpsd.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/gps-logger/gps_logger.py
+Restart=always
+RestartSec=2
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

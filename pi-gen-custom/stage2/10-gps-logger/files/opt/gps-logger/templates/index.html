@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>GPS Logger Console</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <main class="app">
+    <header class="hero">
+      <p class="kicker">Raspberry Pi Zero W</p>
+      <h1>GPS Logger Console</h1>
+      <p class="sub">スマートフォンから状態確認、設定変更、GPX取得を実行できます。</p>
+    </header>
+
+    <section class="panel" aria-labelledby="status-title">
+      <div class="panel-head">
+        <h2 id="status-title">現在ステータス</h2>
+        <button id="refresh-status" class="btn btn-lite" type="button">更新</button>
+      </div>
+      <div class="grid" id="status-grid">
+        <article class="cell"><span>Fix</span><strong id="st-fix">-</strong></article>
+        <article class="cell"><span>衛星数</span><strong id="st-sats">-</strong></article>
+        <article class="cell"><span>HDOP</span><strong id="st-hdop">-</strong></article>
+        <article class="cell"><span>速度(m/s)</span><strong id="st-speed">-</strong></article>
+        <article class="cell"><span>緯度</span><strong id="st-lat">-</strong></article>
+        <article class="cell"><span>経度</span><strong id="st-lon">-</strong></article>
+        <article class="cell"><span>高度(m)</span><strong id="st-alt">-</strong></article>
+        <article class="cell"><span>方位(deg)</span><strong id="st-course">-</strong></article>
+        <article class="cell full"><span>空き容量</span><strong id="st-disk">-</strong></article>
+      </div>
+      <p class="meta" id="st-updated">GPS時刻: -</p>
+    </section>
+
+    <section class="panel" aria-labelledby="settings-title">
+      <h2 id="settings-title">記録設定</h2>
+      <form id="settings-form" class="form-stack">
+        <label>
+          取得間隔 (秒)
+          <input id="set-interval" type="number" step="0.1" min="0.5" required>
+        </label>
+        <label>
+          停止判定速度 (m/s)
+          <input id="set-min-speed" type="number" step="0.1" min="0" required>
+        </label>
+        <label>
+          削除開始 空き容量 (MB)
+          <input id="set-disk-th" type="number" step="1" min="50" required>
+        </label>
+        <label>
+          削除目標 空き容量 (MB)
+          <input id="set-disk-target" type="number" step="1" min="100" required>
+        </label>
+        <button class="btn" type="submit">設定を保存</button>
+      </form>
+      <p class="meta" id="settings-msg"></p>
+    </section>
+
+    <section class="panel" aria-labelledby="gpx-title">
+      <h2 id="gpx-title">GPX ダウンロード</h2>
+      <form id="gpx-form" class="form-stack">
+        <label>
+          開始時刻
+          <input id="gpx-start" type="datetime-local" required>
+        </label>
+        <label>
+          終了時刻
+          <input id="gpx-end" type="datetime-local" required>
+        </label>
+        <button class="btn" type="submit">GPX を取得</button>
+      </form>
+      <p class="meta" id="gpx-msg"></p>
+    </section>
+
+    <section class="panel" aria-labelledby="gps-device-title">
+      <div class="panel-head">
+        <h2 id="gps-device-title">GPS デバイス設定</h2>
+        <button id="scan-gps-device" class="btn btn-lite" type="button">スキャン</button>
+      </div>
+      <form id="gps-device-form" class="form-stack">
+        <label>
+          検出デバイス
+          <select id="gps-device-list"></select>
+        </label>
+        <button class="btn" type="submit">デバイスを適用</button>
+      </form>
+      <p class="meta" id="gps-device-msg"></p>
+    </section>
+
+    <section class="panel" aria-labelledby="error-log-title">
+      <div class="panel-head">
+        <h2 id="error-log-title">エラーログ</h2>
+        <button id="refresh-errors" class="btn btn-lite" type="button">更新</button>
+      </div>
+      <pre id="error-log" class="logbox">読み込み待ち...</pre>
+      <p class="meta">対象: gps-logger / gps-web / gpsd / hostapd / dnsmasq (warning以上)</p>
+    </section>
+  </main>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

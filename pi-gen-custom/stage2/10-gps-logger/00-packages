@@ -1,0 +1,9 @@
+python3
+python3-flask
+python3-venv
+python3-pip
+sqlite3
+gpsd
+gpsd-clients
+hostapd
+dnsmasq
