@@ -13,6 +13,13 @@ Raspberry Pi Zero W 向け GPS ロガーを構築するための `pi-gen` カス
 - Flask Web UI/API（設定変更、GPX出力、GPSデバイス選択、エラーログ表示）
 - GPS時刻によるシステム時刻補正（`gps-time-sync.service`）
 
+## 動作確認済みハードウェア
+
+- GPS受信機: VK-162
+  - 製品リンク: [Amazon商品ページ](https://www.amazon.co.jp/dp/B0DPLD99JF)
+  - ASIN: `B0DPLD99JF`
+  - 搭載チップ: `M8030`
+
 ## ビルド環境構築（公式 pi-gen を使用）
 
 1. 公式 `pi-gen` を取得
